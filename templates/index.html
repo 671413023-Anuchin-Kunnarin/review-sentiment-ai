@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบทำนายความรู้สึกจากรีวิวสินค้า | AI Review Sentiment</title>
+
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="main-wrapper">
+
+    <div class="container">
+
+        <!-- Header Section -->
+        <header class="header-section">
+            <div class="project-tag">
+                <span>🎓</span> Mini Project • Natural Language Processing (NLP)
+            </div>
+
+            <h1 class="main-title">ระบบทำนายความรู้สึกจากรีวิวสินค้า</h1>
+
+            <div class="api-badge-card">
+                <span class="status-dot"></span>
+                <span>ประมวลผลด้วยโมเดลภาษาไทย <strong>AIForThai S-Sense API</strong> (NECTEC)</span>
+            </div>
+        </header>
+
+        <!-- Example Presets Section -->
+        <div class="examples-section">
+            <div class="examples-header">
+                <span class="examples-title">
+                    💡 เลือกตัวอย่างข้อความทดสอบ:
+                </span>
+            </div>
+            <div class="example-buttons-grid">
+                <button type="button"
+                        class="example-btn example-btn-pos"
+                        data-sample="สินค้าคุณภาพดีมากครับ คุ้มค่าคุ้มราคา การจัดส่งรวดเร็ว แพ็คของมาแน่นหนา แนะนำเลยครับ!">
+                    <span>😊</span> รีวิวเชิงบวก
+                </button>
+
+                <button type="button"
+                        class="example-btn example-btn-neu"
+                        data-sample="ได้รับสินค้าตามรายการที่สั่ง สินค้าอยู่ในสภาพปกติ">
+                    <span>😐</span> รีวิวเป็นกลาง
+                </button>
+
+                <button type="button"
+                        class="example-btn example-btn-neg"
+                        data-sample="สินค้าไม่ตรงปกเลย คุณภาพแย่มาก ใช้งานไม่ได้ พัสดุเสียหาย ติดต่อร้านค้าก็ไม่ตอบ ผิดหวังมาก">
+                    <span>😞</span> รีวิวเชิงลบ
+                </button>
+            </div>
+        </div>
+
+        <!-- Review Input Form -->
+        <form id="analyzeForm" method="POST" action="/">
+            <div class="form-group">
+                <div class="textarea-header">
+                    <label for="reviewInput" class="label-title">
+                        ✍️ ข้อความรีวิวสินค้า
+                    </label>
+                    <div class="textarea-actions">
+                        <span>จำนวนตัวอักษร: <strong id="charCount">0</strong></span>
+                        <button type="button" id="clearBtn" class="clear-text-btn">ล้างข้อความ</button>
+                    </div>
+                </div>
+
+                <div class="textarea-wrapper">
+                    <textarea
+                        id="reviewInput"
+                        name="review"
+                        placeholder="พิมพ์หรือวางข้อความรีวิวสินค้าภาษาไทยที่ต้องการวิเคราะห์ที่นี่..."
+                        rows="5"
+                        required>{{ review }}</textarea>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-submit">
+                <span id="btnSpinner" class="spinner hidden"></span>
+                <span id="btnIcon">⚡</span>
+                <span id="btnText">วิเคราะห์ความรู้สึก</span>
+            </button>
+        </form>
+
+        <!-- Loading Feedback Indicator -->
+        <div id="loadingOverlay" class="loading-box hidden">
+            <div class="spinner-large"></div>
+            <p class="loading-text">กำลังส่งข้อมูลไปยัง AIForThai S-Sense...</p>
+            <p class="loading-subtext">ระบบกำลังประมวลผลและแยกแยะขั้วอารมณ์ กรุณารอสักครู่</p>
+        </div>
+
+        <!-- Error Notification -->
+        {% if error %}
+        <div class="alert-error" role="alert">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <strong>เกิดข้อผิดพลาด</strong>
+                <p>{{ error }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Sentiment Result Card -->
+        {% if result %}
+        <div id="resultCard"
+             class="result-card {% if result.polarity == 'positive' %}result-positive{% elif result.polarity == 'negative' %}result-negative{% else %}result-neutral{% endif %}">
+
+            <span class="result-header-badge">ผลการวิเคราะห์ความรู้สึก</span>
+
+            <div class="emoji-circle">
+                {{ result.emoji }}
+            </div>
+
+            <h2 class="result-title">{{ result.thai_result }}</h2>
+
+            <div class="result-stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">ผลการทำนาย (Polarity)</div>
+                    <div class="stat-value">{{ result.polarity }}</div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="stat-label">คะแนนความรู้สึก (Sentiment Score)</div>
+                    <div class="stat-value">
+                        <span class="score-pill">{{ result.score }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Presentation / Project Footer -->
+    <footer class="project-footer">
+        <div class="footer-badges">
+            <span class="footer-badge">Flask Framework</span>
+            <span class="footer-badge">AIForThai S-Sense API</span>
+            <span class="footer-badge">Thai Sentiment Analysis</span>
+        </div>
+        <p>โครงงานจำแนกและวิเคราะห์ความรู้สึกจากความคิดเห็นของผู้ใช้งาน (Sentiment Prediction System)</p>
+    </footer>
+
+</div>
+
+<!-- Interactive Scripts -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
